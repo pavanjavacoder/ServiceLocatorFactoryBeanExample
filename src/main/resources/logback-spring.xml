@@ -1,0 +1,55 @@
+<configuration>
+    <property name="LOG_PATH" value="/com/pav/logs"/>
+    <property name="LOG_PATH_ARCHIVE" value="{LOG_PATH}/archive"/>
+
+    <if condition='"${SPRING_PROFILES_ACTIVE}".contains("IS_UNDEFINED")'>
+        <then>
+            <property name="FILE_NAME" value="servicelocatorfactorybeanexample-${spring.profiles.active}.log"/>
+        </then>
+        <else>
+            <property name="FILE_NAME" value="servicelocatorfactorybeanexample-${spring_profiles_ACTIVE}.log"/>
+        </else>
+    </if>
+
+    <springProperty scope="context" name="springAppName" source="spring.application.name"/>
+
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <!-- @formatter:off -->
+            <pattern>[${springAppName}] [%X{X-B3-TraceId:-}] [%X{X-B3-SpanId:-}] %d{dd-MM-yyyy HH:mm:ss.SSS} %magenta([%thread]) %highlight(%-5level) %logger{36}.%M - %msg%n</pattern>
+            <!-- @formatter:on -->
+        </encoder>
+    </appender>
+
+    <appender name="ROLLING" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_PATH}/${FILE_NAME}</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_ARCHIVE}/${FILE_NAME}-%d{dd-MM-yyyy}.%i.log</fileNamePattern>
+            <maxFileSize>10MB</maxFileSize>
+            <maxHistory>10</maxHistory>
+            <totalSizeCap>100MB</totalSizeCap>
+        </rollingPolicy>
+        <encoder>
+            <!-- @formatter:off -->
+            <pattern>[${springAppName}] [%X{X-B3-TraceId:-}] [%X{X-B3-SpanId:-}] %d{dd-MM-yyyy HH:mm:ss.SSS} %magenta([%thread]) %highlight(%-5level) %logger{36}.%M - %msg%n</pattern>
+            <!-- @formatter:on -->
+        </encoder>
+    </appender>
+
+    <springProfile name="local">
+        <root level="info">
+            <appender-ref ref="STDOUT"/>
+        </root>
+    </springProfile>
+
+
+    <springProfile name="!local, !test">
+        <root level="info">
+            <appender-ref ref="ROLLING"/>
+        </root>
+    </springProfile>
+
+    <logger name="com.pav.learning" level="info"/>
+    <logger name="org.springframework" level="debug"/>
+
+</configuration>
